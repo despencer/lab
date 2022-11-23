@@ -9,16 +9,17 @@ class With:
         return self
 
     def __exit__(self, extype, exvalue, extrace):
-        print('exit')
+        print('exit', extype, exvalue, extrace)
 
 print('start')
 with With() as w:
+    a = 5
     print('first with')
 
-print('interim')
+print('interim', a)
 
 with With() as w:
     print('second with')
     z = 1 / 0
 
-print('quit')
+print('quit', a)
