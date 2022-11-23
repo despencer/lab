@@ -1,0 +1,10 @@
+add_library(common OBJECT Console.cc Time.cc)
+target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+
+set_property(
+  SOURCE Console.cc
+  PROPERTY COMPILE_DEFINITIONS
+  GAZEBO_DEFAULT_MASTER_PORT=${GAZEBO_DEFAULT_MASTER_PORT}
+)
+
+
