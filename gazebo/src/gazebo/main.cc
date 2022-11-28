@@ -1,11 +1,15 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include "Console.hh"
+#include "gazebo/util/LogRecord.hh"
+#include "gazebo/common/Console.hh"
 // #include "Master.hh"
 
 bool setupServer()
 {
+    gzLogInit("test-", "gzserver.log");
+    gazebo::util::LogRecord::Instance()->Init("gzserver");
+
   gzlog << "gazebo::setupServer started\n";
 /*  std::string host = "";
   unsigned int port = 0;
