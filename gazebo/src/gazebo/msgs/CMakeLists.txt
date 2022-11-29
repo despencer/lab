@@ -57,6 +57,7 @@ set(msgs
  spherical_coordinates.proto
  subscribe.proto
  surface.proto
+ topic_info.proto
  track_visual.proto
  time.proto
  vector2d.proto

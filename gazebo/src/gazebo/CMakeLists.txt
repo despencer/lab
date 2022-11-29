@@ -18,7 +18,7 @@ add_subdirectory(util)
 add_dependencies(gazebo_common gazebo_msgs)
 add_dependencies(gazebo_util gazebo_msgs)
 
-add_executable(gazmain main.cc)
+add_executable(gazmain main.cc Master.cc)
 target_link_libraries(gazmain gazebo_msgs gazebo_common gazebo_util gazebo_transport ${Boost_LIBRARIES} ${Protobuf_LIBRARIES} ${SDFormat_LIBRARIES}
    ${TBB_LIBRARIES} ${tinyxml_LIBRARIES} ${ignition-common3_LIBRARIES} ${ignition-msgs5_LIBRARIES} ${ignition-fuel_tools4_LIBRARIES} 
    ${CURL_LIBRARIES} freeimage tar)
