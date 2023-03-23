@@ -11,15 +11,24 @@ class With:
     def __exit__(self, extype, exvalue, extrace):
         print('exit', extype, exvalue, extrace)
 
-print('start')
+def open():
+    return 4
+
+print('-start')
 with With() as w:
     a = 5
     print('first with')
 
-print('interim', a)
+print('-second')
+with open() as w:
+    a = 6
+    print('second with')
+
+print('-interim', a)
 
 with With() as w:
     print('second with')
     z = 1 / 0
 
-print('quit', a)
+
+print('-quit', a)

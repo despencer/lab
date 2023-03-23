@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+class Provider:
+    @classmethod
+    def extension(cls, self, name):
+        print('from class', name, self.num)
+
 class Some:
     def __init__(self, num):
         self.num = num
@@ -20,6 +25,9 @@ class Some:
         ss = Some(11)
         return ss.exaparam
 
+def extension(self, name):
+    print('from function', name, self.num)
+
 func = Some.example
 s = Some(4)
 func(s)
@@ -38,3 +46,12 @@ func5(10)
 
 func6 = s.getparam3()
 func6(8)
+
+setattr(s.__class__, 'ext', extension)
+s.ext('aa')
+
+setattr(s.__class__, 'ext', Provider.extension)
+s.ext(s,'bb')
+
+setattr(s.__class__, 'ext', lambda s,n: Provider.extension(s, n))
+s.ext('cc')
