@@ -7,6 +7,6 @@ m = 'plugin'
 plugin = importlib.import_module(s + '.' + m)
 
 def main():
-    plugin.hello()
+    getattr(plugin, 'hello')()
 
 main()
