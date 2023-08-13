@@ -18,6 +18,7 @@ class Lazy2:
         self.name = name
 
     def __get__(self, instance, cls):
+        print('Lazy2')
         if instance is None:
             return self
         else:
@@ -29,6 +30,10 @@ def fcalc2(instance):
     print('calc2')
     return 2
 
+def fcalc3(instance):
+    print('calc3')
+    return 3
+
 class model:
     def __init__(self):
         pass
@@ -39,8 +44,12 @@ class model:
         return 1
 
 c = model()
+q = lambda value: setattr(value.__class__, 'calc3', Lazy2('calc3', fcalc3))
 setattr(model, 'calc2', Lazy2('calc2', fcalc2) )
 print('calc1A =', c.calc1)
 print('calc1B =', c.calc1)
 print('calc2A =', c.calc2)
 print('calc2B =', c.calc2)
+q(c)
+print('calc3 =', c.calc3)
+
