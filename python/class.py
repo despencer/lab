@@ -34,3 +34,24 @@ Base.get()
 Derived.get()
 Base.set()
 Derived.set()
+
+class Base2:
+    def __init__(self):
+        self.a = 'aaa'
+
+    def report(self):
+        print(self.a)
+
+class Derived2(Base2):
+    def __init__(self):
+        super().__init__()
+        print(self.a)
+
+    def change(self):
+        self.a = 'bbb'
+
+
+
+b = Derived2()
+b.change()
+b.report()
