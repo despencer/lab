@@ -50,8 +50,19 @@ class Derived2(Base2):
     def change(self):
         self.a = 'bbb'
 
+def hasfunc(instance, funcname):
+    if hasattr(instance, funcname) and callable(getattr(instance, funcname)):
+        print('instance has func', funcname)
+        return True
+    print('instance has not func', funcname)
+    return False
 
 
 b = Derived2()
 b.change()
 b.report()
+
+hasfunc(b, 'change')
+hasfunc(b, 'report')
+hasfunc(b, 'a')
+hasfunc(b, 'aa')
