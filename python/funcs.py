@@ -55,3 +55,12 @@ s.ext(s,'bb')
 
 setattr(s.__class__, 'ext', lambda s,n: Provider.extension(s, n))
 s.ext('cc')
+
+def kvfunc(x, name=None):
+    print('Name', name, 'x', x)
+
+kvfunc('a1')
+func11 = lambda x, **kv: kvfunc(x, **kv)
+
+func11('a2')
+func11('a3', name='UUU')
