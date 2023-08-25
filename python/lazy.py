@@ -43,6 +43,14 @@ class model:
         print('calc1')
         return 1
 
+    @property
+    def hook(self):
+        return None
+
+    @hook.setter
+    def hook(self, value):
+        print('Setting hook')
+
 c = model()
 q = lambda value: setattr(value.__class__, 'calc3', Lazy2('calc3', fcalc3))
 setattr(model, 'calc2', Lazy2('calc2', fcalc2) )
@@ -52,4 +60,5 @@ print('calc2A =', c.calc2)
 print('calc2B =', c.calc2)
 q(c)
 print('calc3 =', c.calc3)
-
+c.hook = 12
+c.hook = 13
