@@ -1,0 +1,1 @@
+CMake automatically adds -fPIC for SHARED add_library.
