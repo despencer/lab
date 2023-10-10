@@ -7,3 +7,9 @@ execute_process(COMMAND ${Python_EXECUTABLE} -c "import jinja2" RESULT_VARIABLE 
 if(NOT RET EQUAL 0)
     message(FATAL_ERROR "Missing jinja2")
 endif()
+
+add_executable(greet main.c)
+add_custom_command(
+    OUTPUT main.c
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generator.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generator.py ${CMAKE_CURRENT_SOURCE_DIR}/main.c.jinja)
