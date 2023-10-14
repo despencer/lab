@@ -8,8 +8,12 @@ if(NOT RET EQUAL 0)
     message(FATAL_ERROR "Missing jinja2")
 endif()
 
+if(NOT DEFINED OPTIONFILE)
+   message(FATAL_ERROR "Options file is missing!")
+endif()
+
 add_executable(greet main.c)
 add_custom_command(
     OUTPUT main.c
-    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generator.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generator.py ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${OPTIONFILE}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/generator.py ${CMAKE_CURRENT_SOURCE_DIR}/main.c.jinja)
