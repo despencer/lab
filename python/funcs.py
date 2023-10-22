@@ -28,6 +28,9 @@ class Some:
 def extension(self, name):
     print('from function', name, self.num)
 
+def multiret():
+    return 4,'a'
+
 func = Some.example
 s = Some(4)
 func(s)
@@ -64,3 +67,6 @@ func11 = lambda x, **kv: kvfunc(x, **kv)
 
 func11('a2')
 func11('a3', name='UUU')
+
+ret1, ret2 = multiret()
+print('multiret', multiret(), ret1, ret2)
