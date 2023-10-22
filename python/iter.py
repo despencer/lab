@@ -18,3 +18,5 @@ for i in someiter(['a', 'b']):
     print(i)
 for idx,i in enumerate(someiter(['a', 'b'])):
     print(idx, i)
+
+print('list', list(someiter(['a', 'b','c'])))
