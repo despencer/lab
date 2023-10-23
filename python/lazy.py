@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from functools import cached_property
 
 class lazy1:
     def __init__(self, func):
@@ -51,6 +52,11 @@ class model:
     def hook(self, value):
         print('Setting hook')
 
+    @cached_property
+    def calc4(self):
+        print('calc4 called')
+        return 0
+
 c = model()
 q = lambda value: setattr(value.__class__, 'calc3', Lazy2('calc3', fcalc3))
 setattr(model, 'calc2', Lazy2('calc2', fcalc2) )
@@ -62,3 +68,6 @@ q(c)
 print('calc3 =', c.calc3)
 c.hook = 12
 c.hook = 13
+
+print('calc4 =', c.calc4)
+print('calc4 =', c.calc4)
