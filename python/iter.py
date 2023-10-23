@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from collections.abc import Iterable
+
 class IterDemo:
     def __init__(self):
         self.data = [1, 2, 3, 4]
@@ -20,3 +22,6 @@ for idx,i in enumerate(someiter(['a', 'b'])):
     print(idx, i)
 
 print('list', list(someiter(['a', 'b','c'])))
+
+print('iterable someiter', isinstance(someiter(['a', 'b','c']), Iterable))
+print('iterable iterdemp', isinstance(IterDemo(), Iterable))
