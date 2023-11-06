@@ -70,3 +70,7 @@ func11('a3', name='UUU')
 
 ret1, ret2 = multiret()
 print('multiret', multiret(), ret1, ret2)
+
+fexam = getattr(s.__class__, 'example')
+print('fexam')
+fexam(s)
