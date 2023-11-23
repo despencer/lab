@@ -66,3 +66,5 @@ hasfunc(b, 'change')
 hasfunc(b, 'report')
 hasfunc(b, 'a')
 hasfunc(b, 'aa')
+
+print('variables', vars(b))
