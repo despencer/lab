@@ -133,3 +133,6 @@ cache/
 *gml
 *.o
 git
+
+#Kicad backups
+*-backups
