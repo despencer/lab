@@ -18,4 +18,7 @@ if __name__ == '__main__':
     with open(args.js) as jsfile:
         document = Node();
         context = js2py.EvalJs( {'document':document} )
-        context.execute(jsfile.read())
+        try:
+            context.execute(jsfile.read())
+        except Exception as e:
+            print('JS error', e)
