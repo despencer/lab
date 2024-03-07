@@ -4,11 +4,23 @@
 static PyObject* mozilla_execute(PyObject* self, PyObject* args)
 {
  char* script = NULL;
+ PyObject* context = NULL;
 
- if(!PyArg_ParseTuple(args, "s", &script))
+ if(!PyArg_ParseTuple(args, "sO", &script, &context))
     return NULL;
 
- printf(script);
+ if(!PyDict_Check(context))
+    return NULL;
+
+ PyObject *key, *value;
+ Py_ssize_t pos = 0;
+ while(PyDict_Next(context, &pos, &key, &value))
+     {
+     wchar_t* str = PyUnicode_AsWideCharString(key, NULL);
+     printf("%ls\n", str);
+     PyMem_Free(str);
+     }
+
  Py_RETURN_NONE;
 }
 
