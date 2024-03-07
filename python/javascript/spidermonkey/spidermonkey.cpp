@@ -9,12 +9,14 @@ static PyObject* mozilla_execute(PyObject* self, PyObject* args)
  if(!PyArg_ParseTuple(args, "sO", &script, &context))
     return NULL;
 
- if(!PyDict_Check(context))
+ PyObject* globals = PyObject_GetAttrString(context, "globals");
+
+ if(!PyDict_Check(globals))
     return NULL;
 
  PyObject *key, *value;
  Py_ssize_t pos = 0;
- while(PyDict_Next(context, &pos, &key, &value))
+ while(PyDict_Next(globals, &pos, &key, &value))
      {
      wchar_t* str = PyUnicode_AsWideCharString(key, NULL);
      printf("%ls\n", str);
