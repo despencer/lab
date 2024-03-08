@@ -19,6 +19,7 @@ if __name__ == '__main__':
         document = Document()
         context = Context()
         context.globals['document'] = document
+        context.globals['print'] = print
         try:
             spidermonkey.execute(jsfile.read(), context)
         except Exception as e:
