@@ -1,5 +1,46 @@
 #define PY_SSIZE_T_CLEAN
 #include <python/Python.h>
+#include <jsapi.h>
+#include <js/Initialization.h>
+#include <js/SourceText.h>
+#include <js/CompilationAndEvaluation.h>
+
+static JSClass PythonGlobalClass = { "global", JSCLASS_GLOBAL_FLAGS, &JS::DefaultGlobalClassOps };
+
+bool evalJS(const char* script)
+{
+ if(!JS_Init())
+    return false;
+
+ JSContext* ctx = JS_NewContext(JS::DefaultHeapMaxBytes);
+ JS::InitSelfHostedCode(ctx);
+
+ JS::RealmOptions options;
+ JSObject* global = JS_NewGlobalObject(ctx, &PythonGlobalClass, nullptr, JS::FireOnNewGlobalHook, options);
+
+ JS::RootedObject root(ctx, global);
+ JSAutoRealm ar(ctx, root);
+
+ JS::CompileOptions opt(ctx);
+ opt.setFileAndLine("python", 1);
+
+ JS::SourceText<mozilla::Utf8Unit> source;
+ if(!source.init(ctx, script, strlen(script), JS::SourceOwnership::Borrowed))
+    return false;
+
+ JS::RootedValue result(ctx);
+ JS::Evaluate(ctx, opt, source, &result);
+
+ if(JS_IsExceptionPending(ctx))
+   {
+   printf("yep");
+   }
+
+ JS_DestroyContext(ctx);
+ JS_ShutDown();
+
+ return true;
+}
 
 static PyObject* mozilla_execute(PyObject* self, PyObject* args)
 {
@@ -24,6 +65,9 @@ static PyObject* mozilla_execute(PyObject* self, PyObject* args)
      Py_XDECREF(PyObject_CallObject(print, pargs));
      Py_DECREF(pargs);
      }
+
+ if(!evalJS("print('Hello')"))
+    return NULL;
 
  Py_RETURN_NONE;
 }
