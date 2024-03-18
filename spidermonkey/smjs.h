@@ -1,6 +1,7 @@
 #ifndef __SPIDER_MONKEY_JAVASCRIPT__
 #define __SPIDER_MONKEY_JAVASCRIPT__
 
+#include <iostream>
 #include <jsapi.h>
 #include <js/Initialization.h>
 
@@ -19,6 +20,7 @@ class SMContext
    static SMContext* open(void);
    void close(void);
    bool evaluate(const char* script);
+   void reporterror(std::ostream& str);
 };
 
 #endif

@@ -1,3 +1,4 @@
+#include <iostream>
 #include "smjs.h"
 
 int main(int argc, const char* argv[])
@@ -7,7 +8,9 @@ int main(int argc, const char* argv[])
 
  if(sm != NULL)
    {
-     sm->evaluate("`hello world, it !`");
+//     sm->evaluate("`console.log('hello world, it !');`");
+     if(!sm->evaluate("print('Hello, world!')"))
+       sm->reporterror(std::cerr);
      sm->close();
      delete sm;
    }

@@ -2,6 +2,7 @@
 #include "smjs.h"
 #include <js/SourceText.h>
 #include <js/CompilationAndEvaluation.h>
+#include <js/Conversions.h>
 
 bool SMContext::init(void)
 {
@@ -63,8 +64,6 @@ bool SMContext::evaluate(const char* script)
  if(ret)
     ret = JS::Evaluate(this->context, *options, *source, result);
 
- printf("%s\n", JS_EncodeStringToASCII(this->context, result->toString()).get());
-
  delete result;
  delete source;
  delete options;
@@ -72,4 +71,22 @@ bool SMContext::evaluate(const char* script)
  return ret;
 }
 
+void SMContext::reporterror(std::ostream& str)
+{
+ if(!JS_IsExceptionPending(this->context))
+    return;
 
+ JS::RootedValue* excpt = new JS::RootedValue(this->context);
+ JS_GetPendingException(this->context, excpt);
+ JS_ClearPendingException(this->context);
+
+ {
+  JS::RootedString message(this->context, JS::ToString(this->context, *excpt));
+  if(!message)
+      str << "Unable to convert the exception to a string\n";
+  else
+      str << JS_EncodeStringToUTF8(this->context, message).get() << "\n";
+ }
+
+ delete excpt;
+}
