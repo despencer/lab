@@ -2,23 +2,20 @@
 #include <js/Initialization.h>
 #include <js/SourceText.h>
 #include <js/CompilationAndEvaluation.h>
-
-extern const JSClassOps DefaultGlobalClassOps;
+#include "smjs.h"
 
 static JSClass PythonGlobalClass = { "global", JSCLASS_GLOBAL_FLAGS, &JS::DefaultGlobalClassOps };
 
 JSContext* init(void)
 {
- if(!JS_Init())
-    return NULL;
-
+ SMContext::init();
  return JS_NewContext(JS::DefaultHeapMaxBytes);
 }
 
 void finish(JSContext* ctx)
 {
  JS_DestroyContext(ctx);
- JS_ShutDown();
+ SMContext::shutdown();
 }
 
 bool evalJS(JSContext* ctx, const char* script)
