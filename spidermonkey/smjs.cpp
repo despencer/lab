@@ -3,6 +3,7 @@
 #include <js/SourceText.h>
 #include <js/CompilationAndEvaluation.h>
 #include <js/Conversions.h>
+#include <js/Object.h>
 
 bool SMContext::init(void)
 {
@@ -89,4 +90,22 @@ void SMContext::reporterror(std::ostream& str)
  }
 
  delete excpt;
+}
+
+bool cppnative(JSContext* ctx, unsigned argc, JS::Value* vp)
+{
+ JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+ JSObject* func = &args.callee();
+ JS::Value val = JS::GetReservedSlot(func, 0);
+ int* data = JS::GetMaybePtrFromReservedSlot<int>(func, 0);
+ std::cout << "Got it, callee " << func << " ,val " << &val << " " << data << "\n";
+ return true;
+}
+
+bool SMContext::addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes)
+{
+ JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, &cppnative, 0, 0);
+ JS::SetReservedSlot(JS_GetFunctionObject(jsfunc), 0, JS::PrivateValue( (void*)0xAC1D) );
+ std::cout << "Function " << jsfunc << " " << JS_GetFunctionObject(jsfunc) << "\n";
+ return true;
 }
