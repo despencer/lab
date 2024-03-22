@@ -1,15 +1,27 @@
 #ifndef __SPIDER_MONKEY_JAVASCRIPT__
 #define __SPIDER_MONKEY_JAVASCRIPT__
 
+#include <vector>
 #include <iostream>
 #include <jsapi.h>
 #include <js/Initialization.h>
 
 typedef uint16_t jstype_t;
-typedef void (*jsfunc_t)(const void**);
+typedef bool (*jsfunc_t)(void**);
 
 #define SMJS_NONE     0
 #define SMJS_STRING     1
+
+class SMFunction
+{
+ public:
+   jsfunc_t function;
+   unsigned int numargs;
+   jstype_t* argtypes;
+ public:
+   SMFunction(jsfunc_t f, unsigned int n, jstype_t* a);
+   bool call(JSContext* ctx, JS::CallArgs& args);
+};
 
 class SMContext
 {
@@ -19,6 +31,8 @@ class SMContext
    JSObject* global;
    JS::RootedObject* root;
    JSAutoRealm* realm;
+   std::vector<SMFunction*> functions;
+
  public:
    static bool init(void);
    static void shutdown(void);

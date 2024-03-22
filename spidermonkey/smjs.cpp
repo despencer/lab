@@ -5,6 +5,27 @@
 #include <js/Conversions.h>
 #include <js/Object.h>
 
+typedef void* pvoid_t;
+
+SMFunction::SMFunction(jsfunc_t f, unsigned int n, jstype_t* a)
+{
+ function = f;
+ numargs = n;
+ argtypes = a;
+}
+
+bool SMFunction::call(JSContext* ctx, JS::CallArgs& args)
+{
+ pvoid_t* cargs = new pvoid_t[this->numargs+1];
+
+ JS::RootedString message(ctx, args[0].toString());
+ std::string ptr = JS_EncodeStringToUTF8(ctx, message).get();
+ cargs[1] = &ptr;
+ bool ret = this->function(cargs);
+ delete[] cargs;
+ return ret;
+}
+
 bool SMContext::init(void)
 {
  if(!JS_Init())
@@ -50,6 +71,10 @@ void SMContext::close(void)
  delete this->options;
  JS_DestroyContext(this->context);
  this->context = NULL;
+
+ for(auto & ft : functions)
+      delete ft;
+ functions.clear();
 }
 
 bool SMContext::evaluate(const char* script)
@@ -96,16 +121,15 @@ bool cppnative(JSContext* ctx, unsigned argc, JS::Value* vp)
 {
  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
  JSObject* func = &args.callee();
- JS::Value val = JS::GetReservedSlot(func, 0);
- int* data = JS::GetMaybePtrFromReservedSlot<int>(func, 0);
- std::cout << "Got it, callee " << func << " ,val " << &val << " " << data << "\n";
- return true;
+ SMFunction* data = JS::GetMaybePtrFromReservedSlot<SMFunction>(func, 0);
+ return data->call(ctx, args);
 }
 
 bool SMContext::addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes)
 {
- JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, &cppnative, 0, 0);
- JS::SetReservedSlot(JS_GetFunctionObject(jsfunc), 0, JS::PrivateValue( (void*)0xAC1D) );
- std::cout << "Function " << jsfunc << " " << JS_GetFunctionObject(jsfunc) << "\n";
+ JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, cppnative, 0, 0);
+ SMFunction* smf = new SMFunction(func, numargs, argtypes);
+ this->functions.push_back(smf);
+ JS::SetReservedSlot(JS_GetFunctionObject(jsfunc), 0, JS::PrivateValue(smf) );
  return true;
 }

@@ -2,10 +2,12 @@
 #include "smjs.h"
 
 static jstype_t print_args[] = {SMJS_NONE, SMJS_STRING};
-void print(const void** args)
+
+bool print(void** args)
 {
- const char* str = (const char*)args[1];
- std::cout << str << '\n';
+ std::string* str = (std::string*)args[1];
+ std::cout << *str << '\n';
+ return true;
 }
 
 int main(int argc, const char* argv[])
