@@ -51,9 +51,9 @@ SMContext* SMContext::open(void)
     std::cerr << "Can't create JSContext\n";
     return NULL;
     }
-
  SMContext* context = new SMContext();
  context->context = jscontext;
+ JS_SetContextPrivate(jscontext, context);
 
  JS::InitSelfHostedCode(context->context);
 
@@ -66,14 +66,14 @@ SMContext* SMContext::open(void)
 
 void SMContext::close(void)
 {
- delete this->realm;
- delete this->root;
- delete this->options;
- JS_DestroyContext(this->context);
- this->context = NULL;
+ delete realm;
+ delete root;
+ delete options;
+ JS_DestroyContext(context);
+ context = NULL;
 
  for(auto & ft : functions)
-      delete ft;
+      delete ft.second;
  functions.clear();
 }
 
@@ -119,17 +119,19 @@ void SMContext::reporterror(std::ostream& str)
 
 bool cppnative(JSContext* ctx, unsigned argc, JS::Value* vp)
 {
+ SMContext* context = (SMContext*)JS_GetContextPrivate(ctx);
  JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
- JSObject* func = &args.callee();
- SMFunction* data = JS::GetMaybePtrFromReservedSlot<SMFunction>(func, 0);
- return data->call(ctx, args);
+ JSFunction* func = (JSFunction*)&args.callee();
+ if(auto search = context->functions.find(func); search != context->functions.end())
+     return search->second->call(ctx, args);
+ std::cerr << "Unable to find function pointer\n";
+ return false;
 }
 
 bool SMContext::addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes)
 {
  JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, cppnative, 0, 0);
  SMFunction* smf = new SMFunction(func, numargs, argtypes);
- this->functions.push_back(smf);
- JS::SetReservedSlot(JS_GetFunctionObject(jsfunc), 0, JS::PrivateValue(smf) );
+ functions.insert(std::make_pair(jsfunc, smf));
  return true;
 }

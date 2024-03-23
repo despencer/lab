@@ -1,8 +1,8 @@
 #ifndef __SPIDER_MONKEY_JAVASCRIPT__
 #define __SPIDER_MONKEY_JAVASCRIPT__
 
-#include <vector>
 #include <iostream>
+#include <map>
 #include <jsapi.h>
 #include <js/Initialization.h>
 
@@ -31,7 +31,8 @@ class SMContext
    JSObject* global;
    JS::RootedObject* root;
    JSAutoRealm* realm;
-   std::vector<SMFunction*> functions;
+ public:
+   std::map<JSFunction*, SMFunction*> functions;
 
  public:
    static bool init(void);
