@@ -10,7 +10,7 @@ bool print(void** args)
  return true;
 }
 
-void eval(void)
+void eval1(void)
 {
  SMContext* sm = SMContext::open();
  sm->addfunction("print", &print, 1, print_args);
@@ -26,11 +26,38 @@ void eval(void)
    }
 }
 
+void eval2(void)
+{
+ SMContext* sm1 = SMContext::open();
+ sm1->addfunction("print", &print, 1, print_args);
+
+ SMContext* sm2 = SMContext::open();
+ sm2->addfunction("print", &print, 1, print_args);
+
+ if(sm1 != NULL && sm2 != NULL)
+   {
+     if(!sm1->evaluate("a='Hello, world one!'"))
+       sm1->reporterror(std::cerr);
+     if(!sm2->evaluate("a='Hello, world second!'"))
+       sm2->reporterror(std::cerr);
+     if(!sm1->evaluate("print(a)"))
+       sm1->reporterror(std::cerr);
+     if(!sm2->evaluate("print(a)"))
+       sm2->reporterror(std::cerr);
+   }
+
+ if(sm1 != NULL)
+    { sm1->close(); delete sm1; }
+ if(sm2 != NULL)
+    { sm2->close(); delete sm2; }
+}
+
 int main(int argc, const char* argv[])
 {
  SMContext::init();
- eval();
- eval();
+ eval1();
+ eval1();
+ eval2();
  SMContext::shutdown();
 }
 
