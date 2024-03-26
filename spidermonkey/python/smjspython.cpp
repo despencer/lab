@@ -1,16 +1,52 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <iostream>
+#include <smjs.h>
+
+static bool smjsinit = false;
+static const char* smattrname = "sm";
 
 static PyObject* smjs_open_context(PyObject* module, PyObject* args)
 {
- std::cout << "smjs_open_context\n";
+   // The SpiderMonkey engine has not yet initialized
+ if(!smjsinit)
+    {
+    SMContext::init();
+    smjsinit = true;
+    }
+
+ PyObject* context = NULL;
+ if(!PyArg_ParseTuple(args, "O", &context))
+    return NULL;
+
+ SMContext* sm = SMContext::open();
+ if(sm == NULL) return NULL;
+
+ PyObject* capsule = PyCapsule_New(sm, NULL, NULL);
+ if(capsule == NULL)
+    { sm->close(); delete sm; return NULL; }
+
+ if(PyObject_SetAttrString(context, smattrname, capsule) != 0)
+    { sm->close(); delete sm; return NULL; }
+
  Py_RETURN_NONE;
 }
 
 static PyObject* smjs_close_context(PyObject* module, PyObject* args)
 {
- std::cout << "smjs_close_context\n";
+ PyObject* context = NULL;
+ if(!PyArg_ParseTuple(args, "O", &context))
+    return NULL;
+
+ PyObject* capsule = PyObject_GetAttrString(context, smattrname);
+ if(capsule == NULL) return NULL;
+
+ SMContext* sm = (SMContext*)PyCapsule_GetPointer(capsule, NULL);
+ if(sm == NULL) return NULL;
+
+ sm->close(); delete sm;
+ PyObject_SetAttrString(context, smattrname, NULL);
+
  Py_RETURN_NONE;
 }
 
@@ -22,7 +58,8 @@ static PyObject* smjs_execute(PyObject* module, PyObject* args)
 
 static PyObject* smjs_shutdown(PyObject* module, PyObject* args)
 {
- std::cout << "smjs_shutdown\n";
+ if(smjsinit)
+     SMContext::shutdown();
  Py_RETURN_NONE;
 }
 
