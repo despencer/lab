@@ -32,16 +32,21 @@ static PyObject* smjs_open_context(PyObject* module, PyObject* args)
  Py_RETURN_NONE;
 }
 
+static SMContext* getcontext(PyObject* context)
+{
+ PyObject* capsule = PyObject_GetAttrString(context, smattrname);
+ if(capsule == NULL) return NULL;
+
+ return (SMContext*)PyCapsule_GetPointer(capsule, NULL);
+}
+
 static PyObject* smjs_close_context(PyObject* module, PyObject* args)
 {
  PyObject* context = NULL;
  if(!PyArg_ParseTuple(args, "O", &context))
     return NULL;
 
- PyObject* capsule = PyObject_GetAttrString(context, smattrname);
- if(capsule == NULL) return NULL;
-
- SMContext* sm = (SMContext*)PyCapsule_GetPointer(capsule, NULL);
+ SMContext* sm = getcontext(context);
  if(sm == NULL) return NULL;
 
  sm->close(); delete sm;
@@ -52,7 +57,17 @@ static PyObject* smjs_close_context(PyObject* module, PyObject* args)
 
 static PyObject* smjs_execute(PyObject* module, PyObject* args)
 {
- std::cout << "smjs_execute\n";
+ PyObject* context = NULL;
+ char* script = NULL;
+ if(!PyArg_ParseTuple(args, "Os", &context, &script))
+    return NULL;
+
+ SMContext* sm = getcontext(context);
+ if(sm == NULL) return NULL;
+
+ if(!sm->evaluate(script))
+    sm->reporterror(std::cerr);
+
  Py_RETURN_NONE;
 }
 
