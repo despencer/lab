@@ -97,24 +97,32 @@ bool SMContext::evaluate(const char* script)
  return ret;
 }
 
-void SMContext::reporterror(std::ostream& str)
+std::string SMContext::geterror(void)
 {
  if(!JS_IsExceptionPending(this->context))
-    return;
+    return std::string("No error");
 
  JS::RootedValue* excpt = new JS::RootedValue(this->context);
  JS_GetPendingException(this->context, excpt);
  JS_ClearPendingException(this->context);
 
+ std::string ret;
+
  {
   JS::RootedString message(this->context, JS::ToString(this->context, *excpt));
   if(!message)
-      str << "Unable to convert the exception to a string\n";
+      ret = "Unable to convert the exception to a string";
   else
-      str << JS_EncodeStringToUTF8(this->context, message).get() << "\n";
+      ret = JS_EncodeStringToUTF8(this->context, message).get();
  }
 
  delete excpt;
+ return ret;
+}
+
+void SMContext::reporterror(std::ostream& str)
+{
+ str << geterror();
 }
 
 bool cppnative(JSContext* ctx, unsigned argc, JS::Value* vp)

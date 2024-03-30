@@ -13,6 +13,10 @@ class Context:
     def execute(self, jscode):
        smjs.execute(self, jscode)
 
+    def add(self, globs):
+       for name, obj in globs.items():
+            smjs.add_global(self, name, obj)
+
     def __enter__(self):
         self.open()
         return self

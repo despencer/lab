@@ -5,6 +5,7 @@
 
 static bool smjsinit = false;
 static const char* smattrname = "sm";
+static PyObject* smerrorclass = NULL;
 
 static PyObject* smjs_open_context(PyObject* module, PyObject* args)
 {
@@ -13,6 +14,9 @@ static PyObject* smjs_open_context(PyObject* module, PyObject* args)
     {
     SMContext::init();
     smjsinit = true;
+
+    smerrorclass = PyErr_NewException("smjs.jserror", NULL, NULL);
+    Py_XINCREF(smerrorclass);
     }
 
  PyObject* context = NULL;
@@ -66,13 +70,24 @@ static PyObject* smjs_execute(PyObject* module, PyObject* args)
  if(sm == NULL) return NULL;
 
  if(!sm->evaluate(script))
-    sm->reporterror(std::cerr);
+    {
+    PyErr_SetString(smerrorclass, sm->geterror().c_str());
+    return NULL;
+    }
 
+ Py_RETURN_NONE;
+}
+
+static PyObject* smjs_add_global(PyObject* module, PyObject* args)
+{
  Py_RETURN_NONE;
 }
 
 static PyObject* smjs_shutdown(PyObject* module, PyObject* args)
 {
+ Py_XDECREF(smerrorclass);
+ Py_CLEAR(smerrorclass);
+
  if(smjsinit)
      SMContext::shutdown();
  Py_RETURN_NONE;
@@ -83,6 +98,7 @@ static PyMethodDef smjs_methods[] =
  {"open_context", smjs_open_context, METH_VARARGS, "Opens a SpiderMonkey JavaScript context"},
  {"close_context", smjs_close_context, METH_VARARGS, "Closes a SpiderMonkey JavaScript context"},
  {"execute", smjs_execute, METH_VARARGS, "Execute a JavaScript"},
+ {"add_global", smjs_add_global, METH_VARARGS, "Adds a global to the JavaScript"},
  {"shutdown", smjs_shutdown, METH_VARARGS, "Shutdowns the SpiderMoney JavaScript engine"},
  {NULL, NULL, 0, NULL}
 };

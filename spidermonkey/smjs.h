@@ -41,6 +41,7 @@ class SMContext
    static SMContext* open(void);
    void close(void);
    bool evaluate(const char* script);
+   std::string geterror(void);
    void reporterror(std::ostream& str);
    bool addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes);
 };
