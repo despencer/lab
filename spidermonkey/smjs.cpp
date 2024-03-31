@@ -75,6 +75,9 @@ void SMContext::close(void)
  for(auto & ft : functions)
       delete ft.second;
  functions.clear();
+ for(auto & fpt : proxyfuncs)
+      delete fpt.second;
+ proxyfuncs.clear();
 }
 
 bool SMContext::evaluate(const char* script)
@@ -136,10 +139,29 @@ bool cppnative(JSContext* ctx, unsigned argc, JS::Value* vp)
  return false;
 }
 
+bool proxyfunc(JSContext* ctx, unsigned argc, JS::Value* vp)
+{
+ SMContext* context = (SMContext*)JS_GetContextPrivate(ctx);
+ JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+ JSFunction* func = (JSFunction*)&args.callee();
+ if(auto search = context->proxyfuncs.find(func); search != context->proxyfuncs.end())
+     return search->second->call(ctx, args);
+ std::cerr << "Unable to find function pointer\n";
+ return false;
+}
+
 bool SMContext::addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes)
 {
  JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, cppnative, 0, 0);
  SMFunction* smf = new SMFunction(func, numargs, argtypes);
  functions.insert(std::make_pair(jsfunc, smf));
+ return true;
+}
+
+bool SMContext::addproxyfunction(const char* name, jsfuncproxy_t func)
+{
+ JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, proxyfunc, 0, 0);
+ SMProxyFunction* pmf = new SMProxyFunction(name, func);
+ proxyfuncs.insert(std::make_pair(jsfunc, pmf));
  return true;
 }
