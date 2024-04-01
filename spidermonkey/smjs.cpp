@@ -158,10 +158,10 @@ bool SMContext::addfunction(const char* name, jsfunc_t func, unsigned int numarg
  return true;
 }
 
-bool SMContext::addproxyfunction(const char* name, jsfuncproxy_t func)
+bool SMContext::addproxyfunction(const char* name, jsfuncproxy_t func, void* proxydata)
 {
  JSFunction* jsfunc = JS_DefineFunction(this->context, *this->root, name, proxyfunc, 0, 0);
- SMProxyFunction* pmf = new SMProxyFunction(name, func);
+ SMProxyFunction* pmf = new SMProxyFunction(name, func, proxydata);
  proxyfuncs.insert(std::make_pair(jsfunc, pmf));
  return true;
 }

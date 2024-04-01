@@ -2,7 +2,7 @@ import smjs
 
 class Context:
     def __init__(self):
-        self.globals = {}
+        self.jsglobals = {}
 
     def open(self):
         smjs.open_context(self)
@@ -15,7 +15,11 @@ class Context:
 
     def add(self, globs):
        for name, obj in globs.items():
-            smjs.add_global(self, name, obj)
+            self.jsglobals[name] = obj
+            smjs.add_globalfunction(self, name)
+
+    def funccall(self, funcname, args):
+       self.jsglobals[funcname](*args)
 
     def __enter__(self):
         self.open()

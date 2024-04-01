@@ -8,7 +8,7 @@
 
 typedef uint16_t jstype_t;
 typedef bool (*jsfunc_t)(void**);
-typedef bool (*jsfuncproxy_t)(std::string& name, JSContext* ctx, JS::CallArgs& args);
+typedef bool (*jsfuncproxy_t)(std::string& name, void* proxydata, JSContext* ctx, JS::CallArgs& args);
 
 #define SMJS_NONE     0
 #define SMJS_STRING     1
@@ -29,9 +29,10 @@ class SMProxyFunction
  public:
    std::string name;
    jsfuncproxy_t function;
+   void* proxydata;
  public:
-   SMProxyFunction(const char* n, jsfuncproxy_t f) { name = n; function = f; };
-   bool call(JSContext* ctx, JS::CallArgs& args) { return function(name, ctx, args); };
+   SMProxyFunction(const char* n, jsfuncproxy_t f, void* pd) { name = n; function = f; proxydata = pd; };
+   bool call(JSContext* ctx, JS::CallArgs& args) { return function(name, proxydata, ctx, args); };
 };
 
 class SMContext
@@ -56,7 +57,7 @@ class SMContext
    std::string geterror(void);
    void reporterror(std::ostream& str);
    bool addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes);
-   bool addproxyfunction(const char* name, jsfuncproxy_t func);
+   bool addproxyfunction(const char* name, jsfuncproxy_t func, void* proxydata);
 };
 
 #endif
