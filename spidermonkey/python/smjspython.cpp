@@ -96,12 +96,19 @@ static bool proxycall(std::string& name, void* proxydata, JSContext* ctx, JS::Ca
  if(convertors == NULL)
      return false;
 
- // new reference
+ // both are new references
  PyObject* function = PyObject_GetAttrString(context, "funccall");
+ PyObject* pname =  PyUnicode_FromString(name.c_str());
 
- 
- 
- Py_XDECREF(function);
+ PyObject* pargs = smjs_convert(ctx, args, convertors);
+ if(pargs != NULL)
+   {
+   PyObject* result = PyObject_CallFunctionObjArgs(function, pname, pargs, NULL);
+   Py_XDECREF(result);
+   }
+
+ Py_XDECREF(pargs);
+ Py_XDECREF(pname); Py_XDECREF(function);
  delete[] convertors;
  return true;
 }
