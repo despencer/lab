@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gcc -Wall -Werror -o $1 $1.cpp -lstdc++
+gcc -std=c++2a -Wall -Werror -o $1 $1.cpp -lstdc++ -lm
