@@ -1,6 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <iostream>
+#include <format>
 #include "smjsvalues.h"
 
 PyObject* smjs_conv_string(JSContext* ctx, const JS::MutableHandleValue& value)
@@ -21,9 +22,18 @@ jsconv_t* smjs_getconvertors(JSContext* ctx, JS::CallArgs& args)
    {
    if(args[i].isString())
        ret[i] = smjs_conv_string;
+   else if(args[i].isObject())
+       {
+       JS_ReportErrorUTF8(ctx, "Objects are not yet implemented");
+       delete[] ret; return NULL;
+       }
    else
        {
-       JS_ReportErrorUTF8(ctx, "Unrecongnized JS type");
+       JS::Value value = args[i];
+       uint64_t data = *(uint64_t*)(void*)&value;
+       data = data >> 47;
+       std::string error = std::format("Unrecongnized JS type {:X}", data);
+       JS_ReportErrorUTF8(ctx, error.c_str());
        delete[] ret;
        return NULL;
        }

@@ -3,6 +3,9 @@
 import argparse
 import spidermonkey
 
+def hello():
+    return 'Hello, world!'
+
 class Document:
     def __init__(self):
         self.name = 'Name'
@@ -15,7 +18,7 @@ if __name__ == '__main__':
         document = Document()
         with spidermonkey.connect() as context:
             try:
-                context.add( {'print':print} )
+                context.add( {'print':print, 'hello':hello} )
                 context.execute(jsfile.read())
             except Exception as e:
                 print('JS error:', e)

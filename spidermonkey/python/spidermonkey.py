@@ -19,7 +19,7 @@ class Context:
             smjs.add_globalfunction(self, name)
 
     def funccall(self, funcname, args):
-       self.jsglobals[funcname](*args)
+       return self.jsglobals[funcname](*args)
 
     def __enter__(self):
         self.open()
