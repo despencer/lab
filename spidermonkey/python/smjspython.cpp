@@ -104,7 +104,7 @@ static bool proxycall(std::string& name, void* proxydata, JSContext* ctx, JS::Ca
  if(pargs != NULL)
    {
    PyObject* result = PyObject_CallFunctionObjArgs(function, pname, pargs, NULL);
-   std::cout << "Pytype " << Py_TYPE(result)->tp_name << "\n";
+   smjs_convertresult(ctx, args, result);
    Py_XDECREF(result);
    }
 

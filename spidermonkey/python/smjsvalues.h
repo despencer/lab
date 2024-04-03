@@ -7,5 +7,6 @@ typedef PyObject* (*jsconv_t)(JSContext* ctx, const JS::MutableHandleValue& valu
 
 jsconv_t* smjs_getconvertors(JSContext* ctx, JS::CallArgs& args);
 PyObject* smjs_convert(JSContext* ctx, JS::CallArgs& args, jsconv_t* converters);
+bool smjs_convertresult(JSContext* ctx, JS::CallArgs& args, PyObject* pobj);
 
 #endif

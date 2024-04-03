@@ -49,3 +49,26 @@ PyObject* smjs_convert(JSContext* ctx, JS::CallArgs& args, jsconv_t* converters)
    PyList_Append(list, converters[i](ctx, args[i]));
  return list;
 }
+
+bool smjs_convertresult(JSContext* ctx, JS::CallArgs& args, PyObject* pobj)
+{
+ const char* tname = Py_TYPE(pobj)->tp_name;
+
+ if(strcmp(tname, "NoneType") == 0)
+    args.rval().setNull();
+ else if(strcmp(tname, "str") == 0)
+    {
+    Py_ssize_t size = 0;
+    const char* pstr = PyUnicode_AsUTF8AndSize(pobj, &size);
+    JS::ConstUTF8CharsZ buf(pstr, size);
+    JS::RootedString str(ctx, JS_NewStringCopyUTF8Z(ctx, buf));
+    args.rval().setString(str);
+    }
+ else
+    {
+    std::string error = std::format("Unrecongnized python type {}", tname);
+    JS_ReportErrorUTF8(ctx, error.c_str());
+    return false;
+    }
+ return true;
+}
