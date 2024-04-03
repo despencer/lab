@@ -2,7 +2,7 @@ import smjs
 
 class Context:
     def __init__(self):
-        self.jsglobals = {}
+        self.jsfuncs = {}
 
     def open(self):
         smjs.open_context(self)
@@ -15,11 +15,14 @@ class Context:
 
     def add(self, globs):
        for name, obj in globs.items():
-            self.jsglobals[name] = obj
-            smjs.add_globalfunction(self, name)
+            if callable(obj):
+                self.jsfuncs[name] = obj
+                smjs.add_globalfunction(self, name)
+            else:
+                print('Objects are not implemented yet')
 
     def funccall(self, funcname, args):
-       return self.jsglobals[funcname](*args)
+       return self.jsfuncs[funcname](*args)
 
     def __enter__(self):
         self.open()
