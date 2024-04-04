@@ -9,6 +9,7 @@ def hello():
 class Document:
     def __init__(self):
         self.name = 'A name'
+        self.base = 'A base'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Reads a javascript file')

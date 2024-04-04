@@ -157,14 +157,50 @@ static PyObject* smjs_add_globalobject(PyObject* module, PyObject* args)
  SMPythonContext* pytcx = getcontext(context);
  if(pytcx == NULL) return NULL;
 
- JS::RootedObject jsobj(pytcx->sm->context, JS_NewObject(pytcx->sm->context, &smjsClass));
- if(!jsobj) return NULL;
+ JS::RootedObject* jsobj = new JS::RootedObject(pytcx->sm->context, JS_NewObject(pytcx->sm->context, &smjsClass));
+ if(!(*jsobj)) return NULL;
 
- JS::SetReservedSlot(jsobj, SlotPtr, JS::PrivateValue(pyobject));
+ JS::SetReservedSlot(*jsobj, SlotPtr, JS::PrivateValue(pyobject));
 
- JS::RootedValue value(pytcx->sm->context); value.setObject(*jsobj);
+ PyObject* capsule = PyCapsule_New(jsobj, NULL, NULL);
+ PyObject_SetAttrString(pyobject, "_js_", capsule);
+
+ JS::RootedValue value(pytcx->sm->context); value.setObject(*(*jsobj));
  if(!JS_SetProperty(pytcx->sm->context, *(pytcx->sm->root), name, value))
     return NULL;
+
+ Py_RETURN_NONE;
+}
+
+bool getternative(JSContext* ctx, unsigned argc, JS::Value* vp)
+{
+ JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+ JSFunction* func = (JSFunction*)&args.callee();
+ std::cout << "Call " << func << "\n";
+ args.rval().setNull();
+ return true;
+}
+
+static PyObject* smjs_add_objectproperty(PyObject* module, PyObject* args)
+{
+ PyObject* context = NULL;
+ char* name = NULL;
+ PyObject* pyobject = NULL;
+ if(!PyArg_ParseTuple(args, "OOs", &context, &pyobject, &name))
+    return NULL;
+
+ SMPythonContext* pytcx = getcontext(context);
+ if(pytcx == NULL) return NULL;
+
+ PyObject* capsule = PyObject_GetAttrString(pyobject, "_js_");
+ JS::RootedObject* jsobj = (JS::RootedObject*)PyCapsule_GetPointer(capsule, NULL);
+
+ JSFunction* getter = JS_DefineFunction(pytcx->sm->context, *(pytcx->sm->root), name, getternative, 0, 0);
+ JS::RootedObject vgetter(pytcx->sm->context, JS_GetFunctionObject(getter)); //vgetter.setFunction(getter);
+// JS::RootedObject* jsobj = NULL; *jsobj
+
+ JS_DefineProperty(pytcx->sm->context, *(jsobj), name, vgetter, nullptr, JSPROP_ENUMERATE);
+ std::cout << "Registration " << name << " " << getter << "\n";
 
  Py_RETURN_NONE;
 }
@@ -187,6 +223,7 @@ static PyMethodDef smjs_methods[] =
  {"execute", smjs_execute, METH_VARARGS, "Execute a JavaScript"},
  {"add_globalfunction", smjs_add_globalfunction, METH_VARARGS, "Adds a global function to the JavaScript"},
  {"add_globalobject", smjs_add_globalobject, METH_VARARGS, "Adds a global object to the JavaScript"},
+ {"add_objectproperty", smjs_add_objectproperty, METH_VARARGS, "Adds a property to an object"},
  {"shutdown", smjs_shutdown, METH_VARARGS, "Shutdowns the SpiderMoney JavaScript engine"},
  {NULL, NULL, 0, NULL}
 };

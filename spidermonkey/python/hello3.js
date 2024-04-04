@@ -1,1 +1,2 @@
-print(document.name)
+print(document.name);
+print(document.base);

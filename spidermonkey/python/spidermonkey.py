@@ -21,6 +21,9 @@ class Context:
                 smjs.add_globalfunction(self, name)
             else:
                 smjs.add_globalobject(self, name, obj)
+                for name in vars(obj):
+                    if name[0] != '_':
+                        smjs.add_objectproperty(self, obj, name)
 
     def funccall(self, funcname, args):
        return self.jsfuncs[funcname](*args)
