@@ -11,6 +11,11 @@ PyObject* smjs_conv_string(JSContext* ctx, const JS::MutableHandleValue& value)
  return PyUnicode_FromString(str.c_str());
 }
 
+PyObject* smjs_conv_none(JSContext* ctx, const JS::MutableHandleValue& value)
+{
+ Py_RETURN_NONE;
+}
+
 jsconv_t* smjs_getconvertors(JSContext* ctx, JS::CallArgs& args)
 {
  unsigned int len = 1;
@@ -22,6 +27,8 @@ jsconv_t* smjs_getconvertors(JSContext* ctx, JS::CallArgs& args)
    {
    if(args[i].isString())
        ret[i] = smjs_conv_string;
+   else if(args[i].isUndefined() || args[i].isNull())
+       ret[i] = smjs_conv_none;
    else if(args[i].isObject())
        {
        JS_ReportErrorUTF8(ctx, "Objects are not yet implemented");
