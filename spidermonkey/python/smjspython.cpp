@@ -2,10 +2,15 @@
 #include <Python.h>
 #include <iostream>
 #include "smjspython.h"
+#include <js/CompilationAndEvaluation.h>
+#include <js/Conversions.h>
+#include <js/Object.h>
 
 static bool smjsinit = false;
 static const char* smattrname = "sm";
 static PyObject* smerrorclass = NULL;
+static JSClass smjsClass = { "Object", JSCLASS_HAS_RESERVED_SLOTS(1), nullptr };
+enum smjsClassSlots { SlotPtr };
 
 static PyObject* smjs_open_context(PyObject* module, PyObject* args)
 {
@@ -43,6 +48,18 @@ static SMPythonContext* getcontext(PyObject* context)
  if(capsule == NULL) return NULL;
 
  return (SMPythonContext*)PyCapsule_GetPointer(capsule, NULL);
+}
+
+static PyObject* smjs_init_context(PyObject* module, PyObject* args)
+{
+ PyObject* context = NULL;
+ if(!PyArg_ParseTuple(args, "O", &context))
+    return NULL;
+
+ SMPythonContext* pytcx = getcontext(context);
+ if(pytcx == NULL) return NULL;
+
+ Py_RETURN_NONE;
 }
 
 static PyObject* smjs_close_context(PyObject* module, PyObject* args)
@@ -129,6 +146,29 @@ static PyObject* smjs_add_globalfunction(PyObject* module, PyObject* args)
  Py_RETURN_NONE;
 }
 
+static PyObject* smjs_add_globalobject(PyObject* module, PyObject* args)
+{
+ PyObject* context = NULL;
+ char* name = NULL;
+ PyObject* pyobject = NULL;
+ if(!PyArg_ParseTuple(args, "OsO", &context, &name, &pyobject))
+    return NULL;
+
+ SMPythonContext* pytcx = getcontext(context);
+ if(pytcx == NULL) return NULL;
+
+ JS::RootedObject jsobj(pytcx->sm->context, JS_NewObject(pytcx->sm->context, &smjsClass));
+ if(!jsobj) return NULL;
+
+ JS::SetReservedSlot(jsobj, SlotPtr, JS::PrivateValue(pyobject));
+
+ JS::RootedValue value(pytcx->sm->context); value.setObject(*jsobj);
+ if(!JS_SetProperty(pytcx->sm->context, *(pytcx->sm->root), name, value))
+    return NULL;
+
+ Py_RETURN_NONE;
+}
+
 static PyObject* smjs_shutdown(PyObject* module, PyObject* args)
 {
  Py_XDECREF(smerrorclass);
@@ -142,9 +182,11 @@ static PyObject* smjs_shutdown(PyObject* module, PyObject* args)
 static PyMethodDef smjs_methods[] =
 {
  {"open_context", smjs_open_context, METH_VARARGS, "Opens a SpiderMonkey JavaScript context"},
+ {"init_context", smjs_init_context, METH_VARARGS, "Initializes a SpiderMonkey JavaScript context"},
  {"close_context", smjs_close_context, METH_VARARGS, "Closes a SpiderMonkey JavaScript context"},
  {"execute", smjs_execute, METH_VARARGS, "Execute a JavaScript"},
  {"add_globalfunction", smjs_add_globalfunction, METH_VARARGS, "Adds a global function to the JavaScript"},
+ {"add_globalobject", smjs_add_globalobject, METH_VARARGS, "Adds a global object to the JavaScript"},
  {"shutdown", smjs_shutdown, METH_VARARGS, "Shutdowns the SpiderMoney JavaScript engine"},
  {NULL, NULL, 0, NULL}
 };

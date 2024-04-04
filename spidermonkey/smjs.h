@@ -37,7 +37,7 @@ class SMProxyFunction
 
 class SMContext
 {
- protected:
+ public:
    JSContext* context;
    JS::RealmOptions* options;
    JSObject* global;

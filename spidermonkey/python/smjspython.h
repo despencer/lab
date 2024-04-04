@@ -14,8 +14,9 @@ class SMPythonContext
 {
 public:
   SMContext* sm;
+  JSClass* proxycls;
 public:
-  SMPythonContext(SMContext* _sm) { sm = _sm; }
+  SMPythonContext(SMContext* _sm) { sm = _sm; proxycls = NULL; }
   virtual ~SMPythonContext() {}
 };
 
