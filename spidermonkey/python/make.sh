@@ -5,4 +5,4 @@ SM_LIBRARY=mozjs-102
 PYTHON_INCLUDE=/usr/include/python3.11
 WARNINGS="-Wno-invalid-offsetof -Wno-maybe-uninitialized"
 
-gcc -I/usr/include/$SM_INCLUDE -I$PYTHON_INCLUDE -I.. -fPIC -Wall -std=c++2a -Werror $WARNINGS -shared -Wl,-soname,smjs.so -o smjs.so smjspython.cpp smjsvalues.cpp ../smjs.cpp -l$SM_LIBRARY
+gcc -I/usr/include/$SM_INCLUDE -I$PYTHON_INCLUDE -I.. -fPIC -Wall -std=c++2a -Werror $WARNINGS -shared -Wl,-soname,smjs.so -o smjs.so smjspython.cpp smjsvalues.cpp ../smjs.cpp -l$SM_LIBRARY 2>&1 | tee make.log

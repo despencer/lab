@@ -8,6 +8,10 @@
 
 static bool smjsinit = false;
 static const char* smattrname = "sm";
+
+// name of Python object's attribute for keeping reference to a corresponding JavaScript object
+static const char* smobjattrname = "_smjs_";
+
 static PyObject* smerrorclass = NULL;
 static JSClass smjsClass = { "Object", JSCLASS_HAS_RESERVED_SLOTS(1), nullptr };
 enum smjsClassSlots { SlotPtr };
@@ -146,6 +150,8 @@ static PyObject* smjs_add_globalfunction(PyObject* module, PyObject* args)
  Py_RETURN_NONE;
 }
 
+// This function creates a mirrored JavaScript object and connects both (Python and JavaScript object)
+// with cross-references. This function does not create any attribute
 static PyObject* smjs_add_globalobject(PyObject* module, PyObject* args)
 {
  PyObject* context = NULL;
@@ -157,14 +163,18 @@ static PyObject* smjs_add_globalobject(PyObject* module, PyObject* args)
  SMPythonContext* pytcx = getcontext(context);
  if(pytcx == NULL) return NULL;
 
+// new JS object
  JS::RootedObject* jsobj = new JS::RootedObject(pytcx->sm->context, JS_NewObject(pytcx->sm->context, &smjsClass));
  if(!(*jsobj)) return NULL;
 
+// setting cross-reference from JS to Python
  JS::SetReservedSlot(*jsobj, SlotPtr, JS::PrivateValue(pyobject));
 
+// setting cross-reference from Python to JS
  PyObject* capsule = PyCapsule_New(jsobj, NULL, NULL);
- PyObject_SetAttrString(pyobject, "_js_", capsule);
+ PyObject_SetAttrString(pyobject, smobjattrname, capsule);
 
+// Adding new JS object to the global JS object
  JS::RootedValue value(pytcx->sm->context); value.setObject(*(*jsobj));
  if(!JS_SetProperty(pytcx->sm->context, *(pytcx->sm->root), name, value))
     return NULL;
@@ -172,12 +182,39 @@ static PyObject* smjs_add_globalobject(PyObject* module, PyObject* args)
  Py_RETURN_NONE;
 }
 
-bool getternative(JSContext* ctx, unsigned argc, JS::Value* vp)
+PyObject* getpyobjfromjs(JSContext* ctx, JS::CallArgs& args)
 {
- JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
- JSFunction* func = (JSFunction*)&args.callee();
- std::cout << "Call " << func << "\n";
- args.rval().setNull();
+ JS::RootedObject thisObj(ctx);
+ if(!args.computeThis(ctx, &thisObj)) return NULL;
+
+ return JS::GetMaybePtrFromReservedSlot<PyObject>(thisObj, SlotPtr);
+}
+
+// callback from JS engine for getting an attribute
+bool proxygetter(std::string& name, void* proxydata, JSContext* ctx, JS::CallArgs& args)
+{
+ PyObject* pyobject = getpyobjfromjs(ctx, args);
+ if(pyobject == NULL) return false;
+
+ PyObject* result = PyObject_GetAttrString(pyobject, name.c_str());
+ smjs_convertresult(ctx, args, result);
+ Py_XDECREF(result);
+
+ return true;
+}
+
+// callback from JS engine for setting an attribute
+bool proxysetter(std::string& name, void* proxydata, JSContext* ctx, JS::CallArgs& args)
+{
+ if(args.length() < 1) return false;
+
+ PyObject* pyobject = getpyobjfromjs(ctx, args);
+ if(pyobject == NULL) return false;
+
+ PyObject* value = smjs_convertsingle(ctx, args[0]);
+ if(value == NULL) return false;
+
+ PyObject_SetAttrString(pyobject, name.c_str(), value);
  return true;
 }
 
@@ -192,15 +229,12 @@ static PyObject* smjs_add_objectproperty(PyObject* module, PyObject* args)
  SMPythonContext* pytcx = getcontext(context);
  if(pytcx == NULL) return NULL;
 
- PyObject* capsule = PyObject_GetAttrString(pyobject, "_js_");
+// retrieving reference to the corresponding JS object
+ PyObject* capsule = PyObject_GetAttrString(pyobject, smobjattrname);
  JS::RootedObject* jsobj = (JS::RootedObject*)PyCapsule_GetPointer(capsule, NULL);
+ if(capsule == NULL) return NULL;
 
- JSFunction* getter = JS_DefineFunction(pytcx->sm->context, *(pytcx->sm->root), name, getternative, 0, 0);
- JS::RootedObject vgetter(pytcx->sm->context, JS_GetFunctionObject(getter)); //vgetter.setFunction(getter);
-// JS::RootedObject* jsobj = NULL; *jsobj
-
- JS_DefineProperty(pytcx->sm->context, *(jsobj), name, vgetter, nullptr, JSPROP_ENUMERATE);
- std::cout << "Registration " << name << " " << getter << "\n";
+ pytcx->sm->addproxyproperty(name, jsobj, proxygetter, proxysetter, context);
 
  Py_RETURN_NONE;
 }

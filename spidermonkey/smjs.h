@@ -58,6 +58,7 @@ class SMContext
    void reporterror(std::ostream& str);
    bool addfunction(const char* name, jsfunc_t func, unsigned int numargs, jstype_t* argtypes);
    bool addproxyfunction(const char* name, jsfuncproxy_t func, void* proxydata);
+   bool addproxyproperty(const char* name, JS::RootedObject* jsobj, jsfuncproxy_t getter, jsfuncproxy_t setter, void* proxydata);
 };
 
 #endif

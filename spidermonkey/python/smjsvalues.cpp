@@ -16,6 +16,28 @@ PyObject* smjs_conv_none(JSContext* ctx, const JS::MutableHandleValue& value)
  Py_RETURN_NONE;
 }
 
+jsconv_t smjs_getconvertor(JSContext* ctx, const JS::MutableHandleValue& value)
+{
+ if(value.isString())
+     return smjs_conv_string;
+ else if(value.isUndefined() || value.isNull())
+     return smjs_conv_none;
+ else if(value.isObject())
+    {
+    JS_ReportErrorUTF8(ctx, "Objects are not yet implemented");
+    return NULL;
+    }
+ else
+    {
+    uint64_t data = *(uint64_t*)(void*)&value;
+    data = data >> 47;
+    std::string error = std::format("Unrecongnized JS type {:X}", data);
+    JS_ReportErrorUTF8(ctx, error.c_str());
+    return NULL;
+    }
+ return NULL;
+}
+
 jsconv_t* smjs_getconvertors(JSContext* ctx, JS::CallArgs& args)
 {
  unsigned int len = 1;
@@ -25,27 +47,10 @@ jsconv_t* smjs_getconvertors(JSContext* ctx, JS::CallArgs& args)
 
  for(unsigned int i=0; i<args.length(); i++)
    {
-   if(args[i].isString())
-       ret[i] = smjs_conv_string;
-   else if(args[i].isUndefined() || args[i].isNull())
-       ret[i] = smjs_conv_none;
-   else if(args[i].isObject())
-       {
-       JS_ReportErrorUTF8(ctx, "Objects are not yet implemented");
-       delete[] ret; return NULL;
-       }
-   else
-       {
-       JS::Value value = args[i];
-       uint64_t data = *(uint64_t*)(void*)&value;
-       data = data >> 47;
-       std::string error = std::format("Unrecongnized JS type {:X}", data);
-       JS_ReportErrorUTF8(ctx, error.c_str());
-       delete[] ret;
-       return NULL;
-       }
+   ret[i] = smjs_getconvertor(ctx, args[i]);
+   if(ret[i] == NULL)
+      { delete[] ret; return NULL; }
    }
-
  return ret;
 }
 
@@ -55,6 +60,13 @@ PyObject* smjs_convert(JSContext* ctx, JS::CallArgs& args, jsconv_t* converters)
  for(unsigned int i=0; i<args.length(); i++)
    PyList_Append(list, converters[i](ctx, args[i]));
  return list;
+}
+
+PyObject* smjs_convertsingle(JSContext* ctx, const JS::MutableHandleValue& value)
+{
+ jsconv_t conv = smjs_getconvertor(ctx, value);
+ if(conv == NULL) return NULL;
+ return conv(ctx, value);
 }
 
 bool smjs_convertresult(JSContext* ctx, JS::CallArgs& args, PyObject* pobj)

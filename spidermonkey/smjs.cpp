@@ -165,3 +165,19 @@ bool SMContext::addproxyfunction(const char* name, jsfuncproxy_t func, void* pro
  proxyfuncs.insert(std::make_pair(jsfunc, pmf));
  return true;
 }
+
+bool SMContext::addproxyproperty(const char* name, JS::RootedObject* jsobj, jsfuncproxy_t getter, jsfuncproxy_t setter, void* proxydata)
+{
+ // making getter and setter JS function with the reference to the native C++ functions
+ // then register it as an JS object getter and setter attribute
+ JSFunction* jsgetter = JS_DefineFunction(context, *root, name, proxyfunc, 0, 0);
+ JS::RootedObject vgetter(context, JS_GetFunctionObject(jsgetter));
+ JSFunction* jssetter = JS_DefineFunction(context, *root, name, proxyfunc, 0, 0);
+ JS::RootedObject vsetter(context, JS_GetFunctionObject(jssetter));
+
+ JS_DefineProperty(context, *(jsobj), name, vgetter, vsetter, JSPROP_ENUMERATE);
+
+ proxyfuncs.insert(std::make_pair(jsgetter, new SMProxyFunction(name, getter, proxydata)));
+ proxyfuncs.insert(std::make_pair(jssetter, new SMProxyFunction(name, setter, proxydata)));
+ return true;
+}
