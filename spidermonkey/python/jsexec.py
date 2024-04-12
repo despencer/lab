@@ -8,8 +8,16 @@ def hello():
 
 class Document:
     def __init__(self):
-        self.name = 'A name'
+        self._name = 'A name'
         self.base = 'A base'
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, newname):
+        self._name = newname
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Reads a javascript file')
