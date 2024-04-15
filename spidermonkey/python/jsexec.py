@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 
 import argparse
+import sys
+import os
+sys.path.insert(1, os.path.expanduser('~/dev/web/smjs'))
 import spidermonkey
 
 def hello():
