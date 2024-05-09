@@ -63,13 +63,16 @@ class Program:
                 raise Exception('Unknown type ' + x['type'])
         return program
 
+def load(jssource):
+    ast = parse(jssource);
+    if ast['type'] != 'Program':
+        raise Exception('Invalid AST ' + ast['type'])
+    else:
+        return Program.load(ast)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Reads a javascript file')
     parser.add_argument('js', help='a js file')
     args = parser.parse_args()
     with open(args.js) as jsfile:
-        ast = parse(jsfile.read());
-        if ast['type'] != 'Program':
-            print('Invalid AST')
-        else:
-            jscode = Program.load(ast)
+        load(jsfile.read())
