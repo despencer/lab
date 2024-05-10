@@ -19,6 +19,9 @@ class Literal:
         self.value = value
         self.raw = raw
 
+    def pretty(self, rules):
+        return self.raw
+
 class Expression:
     @classmethod
     def load(cls, astnode):
@@ -35,6 +38,12 @@ class VariableDeclaration:
         self.kind = None
         self.expression = None
 
+    def pretty(self, rules):
+        buf = self.kind + ' ' + self.id
+        if self.expression != None:
+            buf += ' = ' + self.expression.pretty(rules)
+        return buf
+
     @classmethod
     def load(cls, astnode, kind):
         checknode(astnode, ['id', 'init'], nodetype = 'VariableDeclarator')
@@ -49,6 +58,12 @@ class VariableDeclaration:
 class Program:
     def __init__(self):
         self.vardecl = []
+
+    def pretty(self, rules):
+        buf = ""
+        for v in self.vardecl:
+            buf += v.pretty(rules) + '\n'
+        return buf
 
     @classmethod
     def load(cls, astnode):
