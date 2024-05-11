@@ -53,12 +53,14 @@ class Call:
         self.args = []
 
     def pretty(self, rules):
-        return self.callee.pretty(rules) + '();'
+        return self.callee.pretty(rules) + '(' + ','.join( map(lambda x: x.pretty(rules), self.args) ) + ');'
 
     @classmethod
     def load(cls, astnode):
         checknode(astnode, ['callee','arguments'] )
         call = Call(Expression.load(astnode['callee']))
+        for a in astnode['arguments']:
+            call.args.append( Expression.load(a) )
         return call
 
 class Expression:
