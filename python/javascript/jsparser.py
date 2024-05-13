@@ -17,6 +17,7 @@ def checknode(node, keys, nodetype = None):
 class Operand:
     literal = 1
     identifier = 2
+    parameter = 3
 
     def __init__(self, kind, value, raw):
         self.kind = kind
@@ -26,15 +27,58 @@ class Operand:
     def pretty(self, rules):
         return self.raw
 
+class Block:
+    def __init__(self):
+        self.vardecl = []
+        self.exprs = []
+        self.funcs = []
+        self.statements = []
+
+    def pretty(self, rules):
+        buf = ''
+        for s in self.statements:
+            buf += s.pretty(rules) + '\n'
+        return buf
+
+    @classmethod
+    def load(cls, astnode):
+        block = Block()
+        for x in astnode:
+            if x['type'] == 'VariableDeclaration':
+                checknode(x, ['declarations', 'kind'])
+                for vdn in x['declarations']:
+                    vd = VariableDeclaration.load(vdn, x['kind'])
+                    block.vardecl.append(vd)
+                    block.statements.append(vd)
+            elif x['type'] == 'ExpressionStatement':
+                checknode(x, 'expression')
+                ex = Expression.load(x['expression'])
+                block.exprs.append(ex)
+                block.statements.append(ex)
+            elif x['type'] == 'FunctionDeclaration':
+                fn = Function.load(x, True)
+                block.funcs.append(fn)
+                block.statements.append(fn)
+            elif x['type'] == 'EmptyStatement':
+                checknode(x, [])
+                ex = Expression()
+                block.exprs.append(ex)
+                block.statements.append(ex)
+            else:
+                raise Exception('Unknown type ' + x['type'])
+        return block
+
 class Function:
     def __init__(self, name, decl):
         self.name = name
         self.decl = decl
+        self.params = []
 
     def pretty(self, rules):
         buf = 'function'
         if self.name != None:
             buf += ' ' + self.name
+        buf += '(' + ','.join( map(lambda x: x.pretty(rules), self.params) ) + ')'
         if not self.decl:
             buf = '(' + buf + ')'
         return buf
@@ -45,7 +89,15 @@ class Function:
         checknode(astnode['id'], 'name')
         if astnode['generator'] or astnode['expression']:
             raise Exception('Generators or expressions are not yet implemented')
-        return Function(astnode['id']['name'], decl)
+        if len(astnode['defaults']) < 0:
+            raise Exception('Defaults are not yet implemented')
+        func = Function(astnode['id']['name'], decl, Block.load(astnode['body']) )
+        for p in astnode['params']:
+            if p['type'] != 'Identifier':
+                raise Exception('Unsupported parameter ' + p['type'])
+            checknode(p, 'name')
+            func.params.append( Operand(Operand.parameter, p['name'], p['name']) )
+        return func
 
 class Call:
     def __init__(self, callee):
@@ -108,46 +160,16 @@ class VariableDeclaration:
         return vd
 
 class Program:
-    def __init__(self):
-        self.vardecl = []
-        self.exprs = []
-        self.funcs = []
-        self.body = []
+    def __init__(self, body):
+        self.body = body
 
     def pretty(self, rules):
-        buf = ""
-        for v in self.body:
-            buf += v.pretty(rules) + '\n'
-        return buf
+        return self.body.pretty(rules)
 
     @classmethod
     def load(cls, astnode):
         checknode(astnode, 'body')
-        program = Program()
-        for x in astnode['body']:
-            if x['type'] == 'VariableDeclaration':
-                checknode(x, ['declarations', 'kind'])
-                for vdn in x['declarations']:
-                    vd = VariableDeclaration.load(vdn, x['kind'])
-                    program.vardecl.append(vd)
-                    program.body.append(vd)
-            elif x['type'] == 'ExpressionStatement':
-                checknode(x, 'expression')
-                ex = Expression.load(x['expression'])
-                program.exprs.append(ex)
-                program.body.append(ex)
-            elif x['type'] == 'FunctionDeclaration':
-                fn = Function.load(x, True)
-                program.funcs.append(fn)
-                program.body.append(fn)
-            elif x['type'] == 'EmptyStatement':
-                checknode(x, [])
-                ex = Expression()
-                program.exprs.append(ex)
-                program.body.append(ex)
-            else:
-                raise Exception('Unknown type ' + x['type'])
-        return program
+        return Program( Block.load(astnode['body']) )
 
 def load(jssource):
     ast = parse(jssource);
