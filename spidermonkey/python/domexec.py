@@ -16,10 +16,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.html) as htmlfile:
         dom = webhtml.parse(htmlfile.read())
+        window = webdom.setupcontext(dom)
         with open(args.js) as jsfile:
-            with spidermonkey.connect() as context:
+            with spidermonkey.connect(window) as context:
                 try:
-                    webdom.setupcontext(context, dom)
                     context.execute(jsfile.read())
                 except Exception as e:
                     print('JS error:', e)

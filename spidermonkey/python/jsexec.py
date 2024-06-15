@@ -30,8 +30,6 @@ if __name__ == '__main__':
         document = Document()
         with spidermonkey.connect(hello) as context:
             try:
-#                context.add( {'print':print, 'hello':hello} )
-#                context.add( {'document':document} )
                 context.execute(jsfile.read())
             except Exception as e:
                 print('JS error:', e)
