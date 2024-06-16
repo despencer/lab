@@ -21,5 +21,6 @@ if __name__ == '__main__':
             with spidermonkey.connect(window) as context:
                 try:
                     context.execute(jsfile.read())
+                    window.processevents(context)
                 except Exception as e:
                     print('JS error:', e)
