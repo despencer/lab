@@ -7,6 +7,7 @@ sys.path.insert(1, os.path.expanduser('~/dev/web'))
 sys.path.insert(1, os.path.expanduser('~/dev/web/smjs'))
 import spidermonkey
 import webhtml
+import webhttp
 import webdom
 
 if __name__ == '__main__':
@@ -16,7 +17,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with open(args.html) as htmlfile:
         dom = webhtml.parse(htmlfile.read())
-        window = webdom.setupcontext(dom)
+        window = webdom.setupcontext(dom, webhttp.HttpContext())
         with open(args.js) as jsfile:
             with spidermonkey.connect(window) as context:
                 try:
