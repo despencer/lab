@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "beta.proto";
+import "gamma.proto";
+
+package vers;
+
+message Data3
+{
+ Beta beta = 2;
+ Gamma gamma = 3;
+}

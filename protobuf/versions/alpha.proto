@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package vers;
+
+message Alpha
+{
+  uint32 value = 1;
+}
