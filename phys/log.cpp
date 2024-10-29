@@ -33,7 +33,23 @@ void printlog1(void)
  std::cout << "\n";
 }
 
+void printrecip(void)
+{
+ std::cout << "Reciprocal\n";
+ std::vector<int32_t> values = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 100, 200, 500, 700, 900, 1000, 1100, 1200, 1500, 2000};
+ for(auto& i : values)
+    {
+    std::cout << std::format("{:7}", i);
+    for(auto& j : values)
+       {
+       std::cout << std::format("{:7}", 1+(j/i));
+       }
+    std::cout << "\n";
+    }
+}
+
 int main(int argc, const char* argv[])
 {
- printlog1();
+// printlog1();
+ printrecip();
 }

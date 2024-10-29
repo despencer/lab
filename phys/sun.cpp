@@ -72,7 +72,23 @@ void harvest1(int32_t* temperature, int32_t* energy, int32_t appetite, int32_t e
  if( appetite > *energy)
     appetite = *energy;
  int32_t delta = std::round( ratio( curve(appetite, 10, 1.235) * efficiency, *temperature, capacity, 3));
- if (delta<0) delta = 0;
+ if (delta < 0) delta = 0;
+ *energy += delta - appetite;
+ *temperature -= delta;
+}
+
+void harvest2(int32_t* temperature, int32_t* energy, int32_t appetite, int32_t efficiency, int32_t capacity)
+{
+ if( appetite > *energy)
+    appetite = *energy;
+ int32_t delta = appetite * efficiency;
+ if(delta > 0)
+   delta /= 1+(900/delta);
+ delta -= 5 * (delta/1100);
+ if( *temperature > 0)
+    delta /= 1+(capacity/(*temperature));
+ if( *temperature < delta)
+    delta = 0;
  *energy += delta - appetite;
  *temperature -= delta;
 }
@@ -119,7 +135,39 @@ void printharvest(void)
    }
 }
 
+void printharvest2(void)
+{
+ std::vector<int32_t> appetite = { 0, 1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50 };
+ std::vector<int32_t> temperature = { -10000, -10, 0, 200, 500, 1000, 2000, 4000, 6000, 8000, 10000, 15000, 20000, 30000, 50000, 100000 };
+
+ std::cout << "        ";
+ for(auto& t : temperature)
+    std::cout << std::format("{:9}", t);
+ std::cout << "\n";
+
+ for(auto& a : appetite)
+   {
+   std::cout << std::format("App {:2} |", a);
+   for(auto& t: temperature)
+      {
+      int32_t temp = t;
+      int32_t energy = 40;
+      harvest2(&temp, &energy, a, 100, 900);
+      std::cout << std::format("{:9}", energy-40+a);
+      }
+   std::cout << "\n        ";
+/*   for(auto& t: temperature)
+      {
+      int32_t temp = t;
+      int32_t energy = 35;
+      harvest2(&temp, &energy, a, 100, 10);
+      std::cout << std::format("{:9}", temp);
+      }*/
+   std::cout << "\n";
+   }
+}
+
 int main(int argc, const char* argv[])
 {
- printharvest();
+ printharvest2();
 }
