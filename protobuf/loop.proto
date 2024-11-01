@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package loop;
+
+message Alpha
+{
+  repeated Beta beta = 1;
+}
+
+message Beta
+{
+  repeated Alpha aplha = 1;
+}
