@@ -21,6 +21,15 @@ class Base:
         print('set at Base')
         cls()
 
+    @classmethod
+    def show(cls, t):
+        print(t)
+
+print('Start')
+klass = Base
+klass.get()
+klass.show('Base class call')
+print('Indirect call')
 
 class Derived(Base):
     def __init__(self):
