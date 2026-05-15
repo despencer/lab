@@ -7,5 +7,8 @@ fn hello_bevy()
 
 fn main()
 {
- App::new().add_system(hello_bevy).run();
+ App::new()
+   .add_plugins(DefaultPlugins)
+   .add_system(hello_bevy)
+   .run();
 }
